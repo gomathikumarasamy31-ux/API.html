@@ -1,0 +1,208 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Information</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #141e30, #243b55);
+            text-align: center;
+            padding: 50px 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 350px;
+            max-width: 90%;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #0f766e;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            background: #ccfbf1;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 90%;
+            padding: 13px;
+            border: 2px solid #99f6e4;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 8px rgba(15, 118, 110, 0.3);
+        }
+
+        button {
+            background: linear-gradient(to right, #0f766e, #14b8a6);
+            color: white;
+            padding: 13px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #115e59, #0f766e);
+            transform: scale(1.05);
+        }
+
+        #result {
+            margin-top: 25px;
+            padding: 12px;
+            color: #334155;
+            text-align: left;
+        }
+
+        #result h2 {
+            color: #0f766e;
+            text-align: center;
+        }
+
+        #result p {
+            background: #f0fdfa;
+            padding: 12px;
+            border-left: 4px solid #14b8a6;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 15px;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                padding: 20px;
+                margin: 30px auto;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Weather Information</h1>
+        <hr>
+
+        <input type="text" id="city" placeholder="Enter a city name">
+
+        <br><br>
+
+        <button onclick="get()">Get Weather</button>
+
+        <div id="result"></div>
+
+    </div>
+
+    <script>
+
+        function get() {
+
+            let place = document.getElementById("city").value.trim();
+
+            if (place === "") {
+                document.getElementById("result").innerHTML =
+                    "Please enter a city name";
+                return;
+            }
+
+            fetch("https://geocoding-api.open-meteo.com/v1/search?name="
+                + encodeURIComponent(place)
+                + "&count=5&language=en&format=json")
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                if (!data.results || data.results.length == 0) {
+                    document.getElementById("result").innerHTML =
+                        "City not found";
+                    return;
+                }
+
+                let longitude = data.results[0].longitude;
+                let latitude = data.results[0].latitude;
+
+                weather_details(longitude, latitude);
+
+            })
+
+            .catch(error => {
+                document.getElementById("result").innerHTML =
+                    "Unable to get city information. Please try again.";
+                console.log(error);
+            });
+
+        }
+
+        function weather_details(lo, la) {
+
+            fetch("https://api.open-meteo.com/v1/forecast?latitude="
+                + la
+                + "&longitude="
+                + lo
+                + "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code")
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                let weather = data.current;
+
+                document.getElementById("result").innerHTML =
+
+                    "<h2>Weather Details</h2>" +
+                    "<p>Temperature: " + weather.temperature_2m + " °C</p>" +
+                    "<p>Humidity: " + weather.relative_humidity_2m + " %</p>" +
+                    "<p>Feels Like: " + weather.apparent_temperature + " °C</p>" +
+                    "<p>Weather Code: " + weather.weather_code + "</p>";
+
+            })
+
+            .catch(error => {
+                document.getElementById("result").innerHTML =
+                    "Unable to get weather details. Please try again.";
+                console.log(error);
+            });
+
+        }
+
+    </script>
+
+</body>
+</html>
